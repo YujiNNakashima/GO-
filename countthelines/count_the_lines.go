@@ -2,38 +2,35 @@ package countthelines
 
 import (
 	"bufio"
-	"fmt"
 	"os"
+	"path/filepath"
 )
 
-func CountTheLines() {
-	if len(os.Args) != 2 {
-		fmt.Println("Usage: go run main.go <filePath>")
-		return
-	}
-
-	filePath := os.Args[1]
-
-	file, err := os.Open(filePath)
+func CountLinesInFiles(globPattern string) (int, error) {
+	// Glob for files matching the provided pattern
+	matchedFiles, err := filepath.Glob(globPattern)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		return 0, err
 	}
 
-	defer file.Close()
+	totalLines := 0
 
-	scanner := bufio.NewScanner(file)
-	lineCount := 0
+	for _, filePath := range matchedFiles {
+		file, err := os.Open(filePath)
+		if err != nil {
+			return 0, err
+		}
+		defer file.Close()
 
-	for scanner.Scan() {
-		lineCount++
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			totalLines++
+		}
+
+		if err := scanner.Err(); err != nil {
+			return 0, err
+		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-
-	fmt.Printf("Number of lines in %s: %d\n", filePath, lineCount)
-
+	return totalLines, nil
 }
