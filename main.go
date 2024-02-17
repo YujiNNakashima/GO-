@@ -16,12 +16,9 @@ func main() {
 		return
 	}
 
-	totalLines, err := countthelines.CountLinesInFiles(os.Args[1])
+	_, err := countthelines.CountLinesInFiles(os.Args[1])
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-
-	fmt.Printf("Total number of lines from matched files: %d\n", totalLines)
-
 }
