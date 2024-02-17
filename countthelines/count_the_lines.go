@@ -9,15 +9,10 @@ import (
 
 func CountLinesInFiles(globPattern string) (int, error) {
 
-	fmt.Println(globPattern)
-
 	matchedFiles, err := filepath.Glob(globPattern)
 	if err != nil {
 		return 0, err
 	}
-
-	fmt.Println("matched files")
-	fmt.Println(matchedFiles)
 
 	totalLines := 0
 
@@ -36,7 +31,7 @@ func CountLinesInFiles(globPattern string) (int, error) {
 		if err := scanner.Err(); err != nil {
 			return 0, err
 		}
-		fmt.Printf("Total number of lines from %s: %d\n",filePath, totalLines)
+		fmt.Printf("Total number of lines from %s: %d\n", filePath, totalLines)
 	}
 
 	return totalLines, nil
