@@ -3,39 +3,60 @@ package filebackup
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"fmt"
-	"io"
 	"os"
+	"path/filepath"
 )
 
-func HashIt() {
-	args := os.Args
-	if len(args) < 2 {
-		fmt.Println("Usage: go run main.go <filename>")
-		return
-	}
-	filename := args[1]
+func HashIt(rootDir string) ([][]string, error) {
 
-	// read in chunks
-	file, err := os.Open(filename)
+	currentDirFiles, err := globFiles(filepath.Join(rootDir, "*"))
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
+		return nil, err
 	}
-	defer file.Close()
 
-	h := sha1.New()
-
-	// copia direto ao objeto de hash, sem carregar tudo na memória
-	_, err = io.Copy(h, file)
+	subDirFiles, err := globFiles(filepath.Join(rootDir, "**", "*"))
 	if err != nil {
-		fmt.Println("Error copying file content:", err)
-		return
+		return nil, err
 	}
 
-	hashResult := h.Sum(nil)
+	allFiles := append(currentDirFiles, subDirFiles...)
 
-	hashString := hex.EncodeToString(hashResult)
+	var fileHashPairs [][]string
+	for _, filePath := range allFiles {
+		fileInfo, err := os.Stat(filePath)
+		if err != nil {
+			return nil, err
+		}
+		if fileInfo.Mode().IsRegular() {
+			fileContent, err := os.ReadFile(filePath)
+			if err != nil {
+				return nil, err
+			}
+			hashValue, err := hashPath(fileContent)
+			if err != nil {
+				fileHashPairs = append(fileHashPairs, []string{filePath, ""})
+				continue
+			}
+			fileHashPairs = append(fileHashPairs, []string{filePath, hashValue})
+		}
+	}
 
-	fmt.Printf("SHA1 of \"%s\" is %s\n", filename, hashString)
+	return fileHashPairs, nil
+}
+
+func hashPath(content []byte) (string, error) {
+	hasher := sha1.New()
+	_, err := hasher.Write(content)
+	if err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(hasher.Sum(nil)), nil
+}
+
+func globFiles(pattern string) ([]string, error) {
+	files, err := filepath.Glob(pattern)
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }

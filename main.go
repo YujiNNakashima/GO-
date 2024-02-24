@@ -1,7 +1,11 @@
 // main.go
 package main
 
-import "softwaredesign/filebackup"
+import (
+	"fmt"
+	"log"
+	"softwaredesign/filebackup"
+)
 
 func main() {
 	// listfiles.ListFiles()
@@ -17,6 +21,15 @@ func main() {
 	// 	return
 	// }
 
-	filebackup.HashIt()
+	rootDir := "./countthelines"
+	pairs, err := filebackup.HashIt(rootDir)
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	fmt.Println("File paths e hashes:")
+	for _, pair := range pairs {
+		fmt.Printf("%s: %s\n", pair[0], pair[1])
+	}
 
 }
