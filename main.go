@@ -1,8 +1,6 @@
-// main.go
 package main
 
 import (
-	"fmt"
 	"log"
 	"softwaredesign/filebackup"
 )
@@ -27,9 +25,19 @@ func main() {
 		log.Fatalf("Error: %v", err)
 	}
 
-	fmt.Println("File paths e hashes:")
-	for _, pair := range pairs {
-		fmt.Printf("%s: %s\n", pair[0], pair[1])
+	// fmt.Println("File paths e hashes:")
+	// for _, pair := range pairs {
+	// 	fmt.Printf("%s: %s\n", pair[0], pair[1])
+	// }
+
+	newFiles, err := filebackup.FindNew(rootDir, pairs)
+	if err != nil {
+		panic(err)
+	}
+
+	// Print new files
+	for hash, path := range newFiles {
+		println(hash, ":", path)
 	}
 
 }

@@ -27,11 +27,13 @@ func HashIt(rootDir string) ([][]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		if fileInfo.Mode().IsRegular() {
 			fileContent, err := os.ReadFile(filePath)
 			if err != nil {
 				return nil, err
 			}
+
 			hashValue, err := hashPath(fileContent)
 			if err != nil {
 				fileHashPairs = append(fileHashPairs, []string{filePath, ""})
