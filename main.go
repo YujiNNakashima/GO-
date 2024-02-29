@@ -1,8 +1,9 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"softwaredesign/filebackup"
+	"time"
 )
 
 func main() {
@@ -20,24 +21,34 @@ func main() {
 	// }
 
 	rootDir := "./countthelines"
-	pairs, err := filebackup.HashIt(rootDir)
-	if err != nil {
-		log.Fatalf("Error: %v", err)
-	}
+	// pairs, err := filebackup.HashIt(rootDir)
+	// if err != nil {
+	// 	log.Fatalf("Error: %v", err)
+	// }
 
 	// fmt.Println("File paths e hashes:")
 	// for _, pair := range pairs {
 	// 	fmt.Printf("%s: %s\n", pair[0], pair[1])
 	// }
 
-	newFiles, err := filebackup.FindNew(rootDir, pairs)
-	if err != nil {
-		panic(err)
+	// newFiles, err := filebackup.FindNew(rootDir, pairs)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// // Print new files
+	// for hash, path := range newFiles {
+	// 	println(hash, ":", path)
+	// }
+
+	// src := "/path/to/source"
+	dst := "./countthelines/bkp"
+	timestamp := time.Now().Unix()
+
+	if err := filebackup.BackItUp(rootDir, dst, timestamp); err != nil {
+		fmt.Println("Backup failed:", err)
+		return
 	}
 
-	// Print new files
-	for hash, path := range newFiles {
-		println(hash, ":", path)
-	}
-
+	// fmt.Println("Backup completed successfully")
 }
