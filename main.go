@@ -2,53 +2,46 @@ package main
 
 import (
 	"fmt"
-	"softwaredesign/filebackup"
-	"time"
+	queryselector "softwaredesign/query_selector"
 )
 
 func main() {
-	// listfiles.ListFiles()
-	// asyncgo.AsyncGoo(2112)
-	// if len(os.Args) != 2 {
-	// 	fmt.Println("Usage: go run main.go <globPattern>")
-	// 	return
-	// }
 
-	// _, err := countthelines.CountLinesInFiles(os.Args[1])
-	// if err != nil {
-	// 	fmt.Println("Error:", err)
-	// 	return
-	// }
-
-	rootDir := "./countthelines"
-	// pairs, err := filebackup.HashIt(rootDir)
-	// if err != nil {
-	// 	log.Fatalf("Error: %v", err)
-	// }
-
-	// fmt.Println("File paths e hashes:")
-	// for _, pair := range pairs {
-	// 	fmt.Printf("%s: %s\n", pair[0], pair[1])
-	// }
-
-	// newFiles, err := filebackup.FindNew(rootDir, pairs)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Print new files
-	// for hash, path := range newFiles {
-	// 	println(hash, ":", path)
-	// }
-
-	// src := "/path/to/source"
-	dst := "./countthelines/bkp"
-	timestamp := time.Now().Unix()
-
-	if err := filebackup.BackItUp(rootDir, dst, timestamp); err != nil {
-		fmt.Println("Backup failed:", err)
-		return
+	root := &queryselector.Node{
+		Type: "tag",
+		Name: "html",
+		Attribs: map[string]string{
+			"id":    "root",
+			"class": "main",
+		},
+		Children: []*queryselector.Node{
+			{
+				Type: "tag",
+				Name: "body",
+				Attribs: map[string]string{
+					"id":    "body",
+					"class": "content",
+				},
+				Children: []*queryselector.Node{
+					{
+						Type:    "tag",
+						Name:    "div",
+						Attribs: map[string]string{"id": "div1"},
+					},
+					{
+						Type:    "tag",
+						Name:    "div",
+						Attribs: map[string]string{"id": "div2"},
+					},
+					{
+						Type: "tag",
+						Name: "span",
+					},
+				},
+			},
+		},
 	}
 
-	// fmt.Println("Backup completed successfully")
+	selectedNode := queryselector.Select(root, "body div#div2")
+	fmt.Println(selectedNode)
 }
