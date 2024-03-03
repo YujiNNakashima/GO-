@@ -26,12 +26,12 @@ func main() {
 					{
 						Type:    "tag",
 						Name:    "div",
-						Attribs: map[string]string{"id": "div1"},
+						Attribs: map[string]string{"id": "my-id-1"},
 					},
 					{
 						Type:    "tag",
 						Name:    "div",
-						Attribs: map[string]string{"id": "div2"},
+						Attribs: map[string]string{"id": "my-id-2"},
 					},
 					{
 						Type: "tag",
@@ -42,6 +42,6 @@ func main() {
 		},
 	}
 
-	selectedNode := queryselector.Select(root, "body div#div2")
+	selectedNode := queryselector.Select(root, "body div#my-id-2")
 	fmt.Println(selectedNode)
 }
