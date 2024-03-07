@@ -62,3 +62,55 @@ func NewRxStart(rest *RxStart) *RxStart {
 		Rest: rest,
 	}
 }
+
+type RxEnd struct {
+	Rest Matcher
+}
+
+func (re *RxEnd) MatchThis(text string, start int) int {
+	if start != len(text) {
+		return -1
+	}
+	if re.Rest == nil {
+		return len(text)
+	}
+	return re.Rest.MatchThis(text, start)
+}
+
+func NewRxEnd(rest Matcher) *RxEnd {
+	return &RxEnd{
+		Rest: rest,
+	}
+}
+
+type RxAlt struct {
+	Left, Right, Rest Matcher
+}
+
+func (ra *RxAlt) MatchThis(text string, start int) int {
+	patterns := []Matcher{ra.Left, ra.Right}
+	for _, pat := range patterns {
+		if pat == nil {
+			continue
+		}
+		afterPat := pat.MatchThis(text, start)
+		if afterPat != -1 {
+			if ra.Rest == nil {
+				return afterPat
+			}
+			afterRest := ra.Rest.MatchThis(text, afterPat)
+			if afterRest != -1 {
+				return afterRest
+			}
+		}
+	}
+	return -1
+}
+
+func NewRxAlt(left, right, rest Matcher) *RxAlt {
+	return &RxAlt{
+		Left:  left,
+		Right: right,
+		Rest:  rest,
+	}
+}
