@@ -5,7 +5,7 @@ type RxBase struct {
 
 func (rxb *RxBase) Match(m Matcher, text string) bool {
 	for i := 0; i < len(text); i++ {
-		if m.MatchThis(text, i) {
+		if m.MatchThis(text, i) != -1 {
 			return true
 		}
 	}
@@ -13,18 +13,45 @@ func (rxb *RxBase) Match(m Matcher, text string) bool {
 }
 
 type Matcher interface {
-	MatchThis(text string, start int) bool
+	MatchThis(text string, start int) int
 }
 
 type RxLit struct {
 	Chars string
+	Rest  *RxLit
 }
 
-func (m *RxLit) MatchThis(text string, start int) bool {
-	nextIdx := start + len(m.Chars)
+func (rl *RxLit) MatchThis(text string, start int) int {
+	nextIdx := start + len(rl.Chars)
 	if nextIdx > len(text) {
-		return false
+		return -1
 	}
 	substr := text[start:nextIdx]
-	return substr == m.Chars
+	if substr != rl.Chars {
+		return -1
+	}
+	if rl.Rest == nil {
+		return nextIdx
+	}
+	return rl.Rest.MatchThis(text, nextIdx)
 }
+
+func NewRegexLit(chars string, rest *RxLit) *RxLit {
+	return &RxLit{
+		Chars: chars,
+		Rest:  rest,
+	}
+}
+
+// type RxStart struct {
+// }
+
+// func (rxs *RxStart) MatchThis(text string, start int) int {
+// 	if start != 0 {
+// 		return -1
+// 	}
+// 	if rxs.rest == nil {
+// 		return 0
+// 	}
+// 	return rxs.rest.match(text, start)
+// }
