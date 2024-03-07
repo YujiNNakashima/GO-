@@ -43,15 +43,22 @@ func NewRegexLit(chars string, rest *RxLit) *RxLit {
 	}
 }
 
-// type RxStart struct {
-// }
+type RxStart struct {
+	Rest *RxStart
+}
 
-// func (rxs *RxStart) MatchThis(text string, start int) int {
-// 	if start != 0 {
-// 		return -1
-// 	}
-// 	if rxs.rest == nil {
-// 		return 0
-// 	}
-// 	return rxs.rest.match(text, start)
-// }
+func (rs *RxStart) MatchThis(text string, start int) int {
+	if start != 0 {
+		return -1
+	}
+	if rs.Rest == nil {
+		return 0
+	}
+	return rs.Rest.MatchThis(text, start)
+}
+
+func NewRxStart(rest *RxStart) *RxStart {
+	return &RxStart{
+		Rest: rest,
+	}
+}
