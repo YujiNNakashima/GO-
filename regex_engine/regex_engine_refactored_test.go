@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+type MockMatcher struct {
+	matchFunc func(text string, start int) int
+}
+
+func (mm *MockMatcher) MatchThis(text string, start int) int {
+	if mm.matchFunc != nil {
+		return mm.matchFunc(text, start)
+	}
+	return -1
+}
+
 func TestRxBase_Match(t *testing.T) {
 
 	// MockLitMatcher with matching chars
@@ -86,24 +97,32 @@ func TestRxEnd_MatchThis(t *testing.T) {
 	}
 
 	// Test case 3: Chaining with another matcher
-	mockMatcher := &MockMatcher{expectedStart: len(text)}
+	mockMatcher := &MockMatcher{matchFunc: func(text string, start int) int {
+		// Assuming rest matches to the end of the text
+		return len(text)
+	}}
 	endWithRest := regexengine.NewRxEnd(mockMatcher)
-	if got := endWithRest.MatchThis(text, len(text)); got != mockMatcher.expectedStart {
-		t.Errorf("RxEnd.MatchThis() with rest = %v, want %v", got, mockMatcher.expectedStart)
+	expectedMatchPosition := len(text)
+
+	// Use the expectedMatchPosition directly in your assertion
+	if got := endWithRest.MatchThis(text, len(text)); got != expectedMatchPosition {
+		t.Errorf("RxEnd.MatchThis() with rest = %v, want %v", got, expectedMatchPosition)
 	}
 }
 
-type MockMatcher struct {
-	expectedStart int
-}
-
-func (mm *MockMatcher) MatchThis(text string, start int) int {
-	return mm.expectedStart
-}
-
 func TestRxAlt_MatchThis(t *testing.T) {
-	leftMock := &MockMatcher{expectedStart: 3}  // Assume it matches and moves the start to 3
-	rightMock := &MockMatcher{expectedStart: 5} // Assume it matches and moves the start to 5
+	leftMock := &MockMatcher{
+		matchFunc: func(text string, start int) int {
+			// Assuming it matches and moves the start to 5
+			return 3
+		},
+	}
+	rightMock := &MockMatcher{
+		matchFunc: func(text string, start int) int {
+			// Assuming it matches and moves the start to 5
+			return 5
+		},
+	}
 	text := "hello world"
 
 	// Test case 1: Left matcher succeeds
@@ -119,15 +138,56 @@ func TestRxAlt_MatchThis(t *testing.T) {
 	}
 
 	// Test case 3: Chaining with another matcher
-	restMock := &MockMatcher{expectedStart: len(text)} // Assume rest matches to the end
+	restMock := &MockMatcher{
+		matchFunc: func(text string, start int) int {
+			// Assuming rest matches to the end of the text
+			return len(text)
+		},
+	}
 	altChain := regexengine.NewRxAlt(leftMock, rightMock, restMock)
 	if got := altChain.MatchThis(text, 0); got != len(text) {
 		t.Errorf("RxAlt.MatchThis() chain = %v, want %v", got, len(text))
 	}
 
 	// Test case 4: Neither pattern matches
-	altNone := regexengine.NewRxAlt(&MockMatcher{expectedStart: -1}, &MockMatcher{expectedStart: -1}, nil)
+	altNone := regexengine.NewRxAlt(&MockMatcher{
+		matchFunc: func(text string, start int) int {
+			// This matcher always fails to match, returning -1
+			return -1
+		},
+	}, &MockMatcher{
+		matchFunc: func(text string, start int) int {
+			// This matcher also always fails to match, returning -1
+			return -1
+		},
+	}, nil) // Corrected by removing the extra comma
+
 	if got := altNone.MatchThis(text, 0); got != -1 {
 		t.Errorf("RxAlt.MatchThis() none = %v, want %v", got, -1)
+	}
+}
+
+func TestRxAny_MatchThis(t *testing.T) {
+	singleAMatcher := &MockMatcher{
+		matchFunc: func(text string, start int) int {
+			if start < len(text) && text[start] == 'a' {
+				return start + 1
+			}
+			return -1
+		},
+	}
+
+	// Test case 1: Match multiple 'a's and return the new start position
+	text := "aaab"
+	anyA := regexengine.NewRxAny(singleAMatcher, nil)
+	if got := anyA.MatchThis(text, 0); got != 3 {
+		t.Errorf("RxAny.MatchThis() = %v, want %v", got, 3)
+	}
+
+	// Test case 2: Chain to another matcher after matching multiple 'a's
+	bMatcher := regexengine.NewRegexLit("b", nil)
+	anyAWithRest := regexengine.NewRxAny(singleAMatcher, bMatcher)
+	if got := anyAWithRest.MatchThis(text, 0); got != len(text) {
+		t.Errorf("RxAny.MatchThis() with rest = %v, want %v", got, len(text))
 	}
 }

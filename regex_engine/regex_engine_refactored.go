@@ -114,3 +114,39 @@ func NewRxAlt(left, right, rest Matcher) *RxAlt {
 		Rest:  rest,
 	}
 }
+
+type RxAny struct {
+	Child, Rest Matcher
+}
+
+func (ra *RxAny) MatchThis(text string, start int) int {
+	maxPossible := len(text) - start
+	for num := maxPossible; num >= 0; num-- {
+		afterMany := ra.matchMany(text, start, num)
+		if afterMany != -1 {
+			return afterMany
+		}
+	}
+	return -1
+}
+
+func (ra *RxAny) matchMany(text string, start, num int) int {
+	for i := 0; i < num; i++ {
+		nextStart := ra.Child.MatchThis(text, start)
+		if nextStart == -1 {
+			return -1
+		}
+		start = nextStart
+	}
+	if ra.Rest != nil {
+		return ra.Rest.MatchThis(text, start)
+	}
+	return start
+}
+
+func NewRxAny(child, rest Matcher) *RxAny {
+	return &RxAny{
+		Child: child,
+		Rest:  rest,
+	}
+}
